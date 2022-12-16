@@ -1,100 +1,63 @@
 import React, { useState, useEffect } from "react";
 import { Card } from "antd";
-import axios from "axios";
 
 const Convertor = () => {
-  const [initialState, setState] = useState({
-    currencies: ["USD", "SGD", "PHP", "EUR", "INR"],
-    base: "USD",
-    amount: "",
-    convertTo: "INR",
-    result: "",
-    date: "",
-  });
-
-  const { currencies, base, amount, convertTo, result, date } = initialState;
-
+  const currencies = ["USD", "SGD", "PHP", "EUR", "INR","AUD"]
+  const [data,setData] = useState(null)
+  const[amount,setAmount] = useState(0);
+  const[base,setBase] = useState("INR");
+  const[convertTo,setConvertTo] = useState("USD");
+  const swapCurrency = () =>{
+    setBase(convertTo);
+    setConvertTo(base);
+  }
   useEffect(() => {
-    if (amount === isNaN) {
-      return;
-    } else {
-      const getCurrencyconvertTor = async () => {
-        const response = await axios.get(
-          `https://api.exchangeratesapi.io/latest?base=${base}`
-        );
-        console.log("response==>", response);
-        const date = response.data.date;
-        const result = (response.data.rates[convertTo] * amount).toFixed(3);
-        setState({
-          ...initialState,
-          result,
-          date,
-        });
-      };
-      getCurrencyconvertTor();
-    }
-  }, [amount, base, convertTo]);
+  if(amount){
+    var myHeaders = new Headers();
+    myHeaders.append("apikey", "aazGGhivRxAqWDHhy1rXJWHEOPPIQ4bK");
+    
+    var requestOptions = {
+      method: 'GET',
+      redirect: 'follow',
+      headers: myHeaders
+    };
+    
+    fetch(`https://api.apilayer.com/exchangerates_data/convert?to=${convertTo}&from=${base}&amount=${amount}`, requestOptions)
+      .then(res=>res.json())
+      .then(ans=>setData(ans))
+  }
+}, [amount,base,convertTo]);
 
-  const onChangeInput = (e) => {
-    setState({
-      ...initialState,
-      amount: e.target.value,
-      result: null,
-      date: null,
-    });
-  };
-  const handleSelect = (e) => {
-    setState({
-      ...initialState,
-      [e.target.name]: e.target.value,
-      result: null,
-    });
-  };
-
-  const handleSwap = (e) => {
-    e.preventDefault();
-    setState({
-      ...initialState,
-      convertTo: base,
-      base: convertTo,
-      result: null,
-    });
-  };
-
+console.log(data);
   return (
-    <div className="container ml-5">
+    <div className="container">
       <div className="row">
         <div style={{ padding: "30px", background: "#ececec" }}>
           <Card
             title="CURRENCY CONVERTOR"
             bordered={false}
-            style={{ width: 550 }}
+            style={{ width: "80vw"}}
           >
             <h5>
-              {amount} {base} is equivalent to{" "}
+              {amount} {base} is equivalent to {data ? data.result : 0}
             </h5>
             <h3>
-              {amount === ""
-                ? "0"
-                : result === null
-                ? "Calculating ..."
-                : result}
               {convertTo}
             </h3>
-            <p>As of {amount === "" ? "" : date === null ? "" : date}</p>
+            <p>As of {data ? data.date : ""}</p>
             <div className="row">
               <div className="col-lg-10">
                 <form className="form-inline mb-4">
                   <input
                     type="number"
                     value={amount}
-                    onChange={onChangeInput}
+                    onChange={(e)=>{setAmount(e.target.value)}}
                     className="form-control form-control-lg mx-5"
                   />
                   <select
                     name="base"
                     value={base}
-                    onChange={handleSelect}
+                    onChange={(e)=>{setBase(e.target.value)}}
                     className="form-control form-control-lg"
                   >
                     {currencies.map((currency) => (
@@ -107,19 +70,13 @@ const Convertor = () => {
                 <form className="form-inline mb-4">
                   <input
                     disabled={true}
-                    value={
-                      amount === ""
-                        ? "0"
-                        : result === null
-                        ? "Calculating..."
-                        : result
-                    }
+                    value={data ? data.result.toFixed(2) : 0}
                     className="form-control form-control-lg mx-5"
                   />
                   <select
                     name="convertTo"
                     value={convertTo}
-                    onChange={handleSelect}
+                    onChange={(e)=>{setConvertTo(e.target.value)}}
                     className="form-control form-control-lg"
                   >
                     {currencies.map((currency) => (
@@ -131,7 +88,7 @@ const Convertor = () => {
                 </form>
               </div>
               <div className="col-lg-2 align-self-center">
-                <h1 onClick={handleSwap} style={{ cursor: "pointer" }}>
+                <h1 onClick={swapCurrency} style={{ cursor: "pointer" }}>
                   &#8595;&#8593;
                 </h1>
               </div>
